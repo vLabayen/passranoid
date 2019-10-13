@@ -101,7 +101,7 @@ class PasswdManager:
         #lsit services and passwords
         ecprint('DATABASE', c = 'blue', template = '{}{}{}'.format(20*'*', '{}', 20*'*'))
         if len(lines[1:]) == 0: ecprint('No services stored', c = 'yellow')
-        for line in lines[1:]: print('{} : {}'.format(*line.split('\t')))
+        for line in lines[1:]: ecprint(line.split('\t'), c = 'yellow', template = '{} : {}')
         print(48 * '*')
 
         #Refresh db
