@@ -6,9 +6,14 @@ from pmanager import PasswdManager
 from getpass import getpass
 from easycolor import ecprint
 
-parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, epilog = '{}'.format(
-    'examples'
-))
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, epilog = '{}'.format('\n'.join([
+    'create usage   : passranoid.sh create [dbfile]',
+    'select usage   : passranoid.sh select [service]',
+    'insert usage   : passranoid.sh insert [service] [passwd]',
+    'list usage     : passranoid.sh list',
+    'generate usage : passranoid.sh generate [length] [alphabet]',
+    'session usage  : passranoid.sh session',
+])))
 parser.add_argument('db', help = argparse.SUPPRESS)
 parser.add_argument('privkey', help = argparse.SUPPRESS)
 parser.add_argument('pubkey', help = argparse.SUPPRESS)
