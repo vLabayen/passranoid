@@ -1,6 +1,6 @@
 # passranoid
 Password manager with console interface  
-Configure the database, privkey and pubkey in the bash by the bash script  
+Configure the database, privkey and pubkey in the bash script  
 Usage through the bash script  
 &nbsp;  
 &nbsp;  
