@@ -16,6 +16,7 @@ class CommandManager:
         self.databases_path = databases_path
         self.keys_path = keys_path
         self.using = None
+        self.auth = None
 
         self.commands = sorted([
             'create', 'import', 'passgen', 'clear', 'help',
@@ -199,6 +200,13 @@ class CommandManager:
 
         return [True, self.using]
 
+    def set_auth(self, conf, passwd, passphrase):
+        if not conf == self.using:
+            CommandManager.error('Can not set auth. Incorrect database')
+            return False
+
+        if CommandManager.is_empty(passwd, 'Password can not be empty'): return
+        self.auth = {'passwd' : passwd, 'passphrase' : passphrase}
 
 
     @staticmethod
@@ -228,23 +236,36 @@ class CommandManager:
         return [True, num]
 
     @staticmethod
-    def getpasswd(doublecheck = False):
-        passwd = getpass('Password: ')
+    def getpasswd(doublecheck = False, auth = None):
+        passwd = None
+        if auth is not None:
+            try : passwd = auth['passwd']
+            except: pass
 
-        if doublecheck:
-            rpasswd = getpass('Enter same password again: ')
-            if CommandManager.do_not_match(passwd, rpasswd, 'Passwords do not match'): return [False, ""]
+        if passwd is None:
+            passwd = getpass('Password: ')
 
-        if CommandManager.is_empty(passwd, 'Password can not be empty'): return [False, ""]
+            if doublecheck:
+                rpasswd = getpass('Enter same password again: ')
+                if CommandManager.do_not_match(passwd, rpasswd, 'Passwords do not match'): return [False, ""]
+
+            if CommandManager.is_empty(passwd, 'Password can not be empty'): return [False, ""]
+
         return [True, passwd]
 
     @staticmethod
-    def getpassphrase(doublecheck = False):
-        passphrase = getpass('Passphrase (Empty for no passphrase): ')
+    def getpassphrase(doublecheck = False, auth = None):
+        passphrase = None
+        if auth is not None :
+            try : passphrase = auth['passphrase']
+            except : pass
 
-        if doublecheck:
-            rpassphrase = getpass('Enter same passphrase again: ')
-            if CommandManager.do_not_match(passphrase, rpassphrase, 'Passphrases do not match'): return [False, ""]
+        if passphrase is None:
+            passphrase = getpass('Passphrase (Empty for no passphrase): ')
+
+            if doublecheck:
+                rpassphrase = getpass('Enter same passphrase again: ')
+                if CommandManager.do_not_match(passphrase, rpassphrase, 'Passphrases do not match'): return [False, ""]
 
         return [True, passphrase]
 
@@ -372,9 +393,15 @@ class CommandManager:
         #config
         success, conf = self.get_db(dbname)
         if not success : return False
-        self.using = conf
 
-        return True
+        #passwd and passphrase
+        success, passwd = CommandManager.getpasswd()
+        if not success : return False
+        success, passphrase = CommandManager.getpassphrase()
+        if not success : return False
+
+        self.using = conf
+        return [conf, passwd, passphrase]
 
     def _insert(self, args):
         success, conf = self.get_using_db()
@@ -391,9 +418,9 @@ class CommandManager:
         success, spasswd = CommandManager.getservicepasswd(doublecheck = True)
         if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, service, user, spasswd, passwd, passphrase]
@@ -402,9 +429,9 @@ class CommandManager:
         success, conf = self.get_using_db()
         if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, passwd, passphrase]
@@ -417,9 +444,9 @@ class CommandManager:
         else: service = self.input('service: ', history = False)
         if CommandManager.is_empty(service, 'The service can not be empty'): return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, service, passwd, passphrase]
@@ -435,9 +462,9 @@ class CommandManager:
             success, index = CommandManager.cast_to_int(index, 'Index must be either * or an integer')
             if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, index, passwd, passphrase]
@@ -446,9 +473,9 @@ class CommandManager:
         success, conf = self.get_using_db()
         if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, passwd, passphrase]
@@ -472,11 +499,12 @@ class CommandManager:
         success, newpasswd = CommandManager.getnewpasswd(doublecheck = True)
         if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
+        self.auth['passwd'] = newpasswd
         return [conf, newpasswd, passwd, passphrase]
 
     def _changedbkey(self):
@@ -486,11 +514,12 @@ class CommandManager:
         success, newpassphrase = CommandManager.getnewpassphrase(doublecheck = True)
         if not success : return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
+        self.auth['passphrase'] = newpassphrase
         return [conf, newpassphrase, passwd, passphrase]
 
     def _exportdb(self, args):
@@ -501,9 +530,9 @@ class CommandManager:
         else : dbfile = self.input('export file: ', history = False)
         if not CommandManager.checkpermision(dbfile, 'w'): return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, dbfile, passwd, passphrase]
@@ -516,9 +545,9 @@ class CommandManager:
         else : dbfile = self.input('export file: ', history = False)
         if not CommandManager.checkpermision(dbfile, 'r'): return False
 
-        success, passwd = CommandManager.getpasswd()
+        success, passwd = CommandManager.getpasswd(auth = self.auth)
         if not success : return False
-        success, passphrase = CommandManager.getpassphrase()
+        success, passphrase = CommandManager.getpassphrase(auth = self.auth)
         if not success : return False
 
         return [conf, dbfile, passwd, passphrase]

@@ -7,10 +7,10 @@ from pmanager import PasswdManager
 from cmanager import CommandManager
 from printer import cprint, ctable
 
-#TODO : ask for passwd and passphrase in use and bypass the others
 #TODO : autocompletion inside formularies
 #TODO : arreglar bug de parametro vacio al acabar comando con espacio
 #TODO : arreglar bug ctable
+#TODO : verbose mode
 #TODO : remove database
 #TODO : change service user
 #TODO : change service passwd
@@ -20,7 +20,7 @@ def print_help(in_session = True):
     if not in_session :
         cprint('Usage : ./passranoid.sh')
         cprint('Options :')
-#        cprint('    -v, --verbose : Open session in verbose mode')
+        cprint('    -v, --verbose : Open session in verbose mode')
         cprint('    -h, --help : Print this message and exit\n')
 
     cprint('Available commands {} :\n'.format('' if in_session else 'in session mode'))
@@ -92,7 +92,12 @@ while command != "exit":
                     cprint(newpasswd, color = 'lblue')
             elif command == 'clear' : clear()
             elif command == 'help' : print_help()
-            elif command == 'use': cm.handle(command, args)
+            elif command == 'use':
+                verify_args = cm.handle(command, args)
+                if verify_args != False:
+                    success = PasswdManager.verifyauth(*verify_args)
+                    if not success : cprint('Wrong password or/and passphrase', color = 'red')
+                    else : cm.set_auth(*verify_args)
             elif command == 'insert':
                 insert_args = cm.handle(command, args)
                 if insert_args != False: PasswdManager.insert(*insert_args)

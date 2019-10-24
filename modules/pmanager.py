@@ -108,6 +108,14 @@ class PasswdManager:
 
         g.encrypt(passwd,conf['pubkey']).save(conf['dbfile'])
 
+    @staticmethod
+    def verifyauth(conf, passwd, passphrase):
+        try :
+            g = Giltzarrapo().readEncrypted(conf['dbfile']).decrypt(passwd, conf['privkey'], passphrase)
+            g.encrypt(passwd, conf['pubkey']).save(conf['dbfile'])
+        except : return False
+        return True
+
 class InternalPasswdManager:
 
     @staticmethod
