@@ -20,7 +20,7 @@ def print_help(in_session = True):
     if not in_session :
         cprint('Usage : ./passranoid.sh')
         cprint('Options :')
-        cprint('    -v, --verbose : Open session in verbose mode')
+#        cprint('    -v, --verbose : Open session in verbose mode')
         cprint('    -h, --help : Print this message and exit\n')
 
     cprint('Available commands {} :\n'.format('' if in_session else 'in session mode'))
