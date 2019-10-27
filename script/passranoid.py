@@ -7,8 +7,6 @@ from pmanager import PasswdManager
 from cmanager import CommandManager
 from printer import cprint, ctable
 
-#TODO : autocompletion inside formularies
-#TODO : arreglar bug de parametro vacio al acabar comando con espacio
 #TODO : arreglar bug ctable
 #TODO : verbose mode
 #TODO : remove database
@@ -20,7 +18,7 @@ def print_help(in_session = True):
     if not in_session :
         cprint('Usage : ./passranoid.sh')
         cprint('Options :')
-        cprint('    -v, --verbose : Open session in verbose mode')
+        # cprint('    -v, --verbose : Open session in verbose mode')
         cprint('    -h, --help : Print this message and exit\n')
 
     cprint('Available commands {} :\n'.format('' if in_session else 'in session mode'))
@@ -70,9 +68,9 @@ cm = CommandManager(*sys.argv[1:4])
 clear()
 command = ""
 while command != "exit":
-    try : command = cm.input('passranoid>> ')
+    try : command = cm.im.input('passranoid>> ')
     except KeyboardInterrupt:
-        if not cm.is_something_writed(): break
+        if not cm.im.is_something_writed(): break
         else : print('^C')
     except : break
     else :
