@@ -1,5 +1,7 @@
 #https://misc.flogisoft.com/bash/tip_colors_and_formatting
 
+#TODO: support for bgcolor
+
 MODE = {
     'normal' : '{}',
     'bold' : '\033[1m{}',
@@ -21,11 +23,60 @@ COLOR = {
     'gray' : '\033[38;5;245m{}',        'lgray' : '\033[38;5;240m{}',           'dgray' : '\033[38;5;250m{}'
 }
 
-def cprepare(text, color='default', mode='normal'):
+def cprepare(text, color = 'default', mode = 'normal'):
+    """
+    Accepts any color from
+
+        default,black,white,
+        red,lred,dred,
+        green,lgreen,dgreen,
+        yellow,lyellow,dyellow,
+        blue,lblue,dblue,
+        magenta,lmagenta,dmagenta,
+        cyan,lcyan,dcyan,
+        orange,lorange,dorange,
+        gray,lgray,dgray
+
+    Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+    """
+
     return '{}\033[0m'.format(COLOR[color].format(MODE[mode].format(text)))
 
 def cprint(text, color = 'default', mode='normal', **kargs):
+    """
+    Accepts any color from
+
+        default,black,white,
+        red,lred,dred,
+        green,lgreen,dgreen,
+        yellow,lyellow,dyellow,
+        blue,lblue,dblue,
+        magenta,lmagenta,dmagenta,
+        cyan,lcyan,dcyan,
+        orange,lorange,dorange,
+        gray,lgray,dgray
+
+    Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+    Accepts any keyword argument to the print function
+    """
     print(cprepare(text, color, mode), **kargs)
+
+def customprepare(text, color = 'default', mode = 'normal'):
+    """
+    Accepts any color number from   https://misc.flogisoft.com/_media/bash/colors_format/256_colors_fg.png
+    Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+    """
+
+    return '{}\033[0m'.format((COLOR[color] if color == 'default' else '\033[38;5;{}m{}').format(color, '{}').format(MODE[mode]).format(text))
+
+def customprint(text, color = 'default', mode = 'normal', **kargs):
+    """
+    Accepts any color number from   https://misc.flogisoft.com/_media/bash/colors_format/256_colors_fg.png
+    Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+    Accepts any keyword argument to the print function
+    """
+
+    print(customprepare(text, color, mode), **kargs)
 
 def ctable(header, data,
     header_color = 'default', header_mode = 'normal',
@@ -33,28 +84,30 @@ def ctable(header, data,
     table_color = 'default', table_mode = 'normal',
     side_spacing = 1, horizontal_separator = '-', vertical_separator = '|'):
 
+    if len(data) == 0: raise ValueError('No data provided')
+    if len(header) != len(data[0]): raise ValueError('Inconsisten header and data lengths')
+    if len(set([len(x) for x in data])) != 1: raise ValueError('Inconsisten length in data rows')
+
     header = [str(h) for h in header]
     data = [[str(d) for d in row] for row in data]
 
     row_items_count = len(data[0])
     vertical_separator_len = len(vertical_separator)
     horizontal_separator_len = len(horizontal_separator)
-    longest_match_length = max([max(map(len, header))] + [max(map(len, row)) for row in data])
-    row_len = (2 * vertical_separator_len) + (vertical_separator_len * (row_items_count - 1)) + (row_items_count * (longest_match_length + (2 * side_spacing)))
+    longest_match_lengths = [max(map(len, header[i:i+1] + [row[i] for row in data])) for i in range(len(header))]
+    row_len = (2 * vertical_separator_len) + (vertical_separator_len * (row_items_count - 1)) + (row_items_count + (2 * side_spacing)) + sum(longest_match_lengths) + 2
 
-    item_template = '{}{}{}{}{}'.format(side_spacing * ' ', '{:<', longest_match_length, '}', side_spacing * ' ')
+    item_templates = ['{}{}{}{}{}'.format(side_spacing * ' ', '{:<', longest, '}', side_spacing * ' ') for longest in longest_match_lengths]
+    internal_separator = vertical_separator.join([horizontal_separator * (longest + (2 * side_spacing)) for longest in longest_match_lengths])
+
+    row_separator = cprepare(vertical_separator, color = table_color, mode = table_mode)
+    colored_header_templates = [cprepare(it, color = header_color, mode = header_mode) for it in item_templates]
+    colored_item_templates = [cprepare(it, color = rows_color, mode = rows_mode) for it in item_templates]
+
     external_horizontal_line = cprepare(horizontal_separator * row_len, color = table_color, mode = table_mode)
-    internal_horizontal_line = cprepare('{}{}{}'.format(vertical_separator, vertical_separator.join([horizontal_separator * (longest_match_length + (2 * side_spacing))] * row_items_count), vertical_separator) , color = table_color, mode = table_mode)
-    header_line_template = '{}{}{}'.format(
-        cprepare(vertical_separator, color = table_color, mode = table_mode),
-        cprepare(vertical_separator.join([item_template] * row_items_count), color = header_color, mode = header_mode),
-        cprepare(vertical_separator, color = table_color, mode = table_mode)
-    )
-    data_line_template = '{}{}{}'.format(
-        cprepare(vertical_separator, color = table_color, mode = table_mode),
-        cprepare(vertical_separator.join([item_template] * row_items_count), color = rows_color, mode = rows_mode),
-        cprepare(vertical_separator, color = table_color, mode = table_mode)
-    )
+    internal_horizontal_line = cprepare('{}{}{}'.format(vertical_separator, internal_separator, vertical_separator) , color = table_color, mode = table_mode)
+    header_line_template = '{}{}{}'.format(row_separator, row_separator.join(colored_header_templates), row_separator)
+    data_line_template = '{}{}{}'.format(row_separator, row_separator.join(colored_item_templates), row_separator)
 
     print(external_horizontal_line)
     print(header_line_template.format(*header))

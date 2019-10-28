@@ -7,8 +7,6 @@ from pmanager import PasswdManager
 from cmanager import CommandManager
 from printer import cprint, ctable
 
-#TODO : arreglar bug ctable
-#TODO : verbose mode
 #TODO : remove database
 #TODO : change service user
 #TODO : change service passwd
@@ -18,7 +16,7 @@ def print_help(in_session = True):
     if not in_session :
         cprint('Usage : ./passranoid.sh')
         cprint('Options :')
-        # cprint('    -v, --verbose : Open session in verbose mode')
+        cprint('    -v, --verbose : Open session in verbose mode')
         cprint('    -h, --help : Print this message and exit\n')
 
     cprint('Available commands {} :\n'.format('' if in_session else 'in session mode'))
@@ -114,8 +112,8 @@ while command != "exit":
                 if remove_args != False :
                     success = PasswdManager.remove(*remove_args)
                     if not success : cprint('The index does not exists', color = 'red')
-            elif command == 'list':
-                list_args = cm.handle(command, args)
+            elif command == 'list' or command == 'ls':
+                list_args = cm.handle('list', args)
                 if list_args != False:
                     entries = PasswdManager.list(*list_args)
                     if len(entries) > 0: ctable(
@@ -132,7 +130,9 @@ while command != "exit":
                 if changedbkey_args != False : PasswdManager.changedbkey(*changedbkey_args)
             elif command == 'export' :
                 export_args = cm.handle(command, args)
-                if export_args != False: PasswdManager.exportdb(*export_args)
+                if export_args != False:
+                    success = PasswdManager.exportdb(*export_args)
+                    if not success: cprint('The database contains no rows to export', color = 'red')
             elif command == 'version' :
                 version_args = cm.handle(command, args)
                 if version_args != False:
