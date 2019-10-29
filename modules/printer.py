@@ -20,7 +20,7 @@ COLOR = {
     'magenta' : '\033[38;5;132m{}',     'lmagenta' : '\033[95m{}',              'dmagenta' : '\033[35m{}',
     'cyan' : '\033[38;5;43m{}',         'lcyan' : '\033[38;5;14m{}',            'dcyan' : '\033[36m{}',
     'orange' : '\033[38;5;214m{}',      'lorange' : '\033[38;5;202m{}',         'dorange' : '\033[38;5;172m{}',
-    'gray' : '\033[38;5;245m{}',        'lgray' : '\033[38;5;240m{}',           'dgray' : '\033[38;5;250m{}'
+    'gray' : '\033[38;5;245m{}',        'lgray' : '\033[38;5;250m{}',           'dgray' : '\033[38;5;240m{}'
 }
 
 def cprepare(text, color = 'default', mode = 'normal'):
@@ -38,9 +38,14 @@ def cprepare(text, color = 'default', mode = 'normal'):
         gray,lgray,dgray
 
     Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+        Also accepts an array of modes
     """
+    if not isinstance(mode, list): mymode = MODE[mode]
+    else :
+        mymode = MODE[mode[0]]
+        for m in mode[1:]: mymode = mymode.format(MODE[m])
 
-    return '{}\033[0m'.format(COLOR[color].format(MODE[mode].format(text)))
+    return '{}\033[0m'.format(mymode.format(COLOR[color].format(text)))
 
 def cprint(text, color = 'default', mode='normal', **kargs):
     """
@@ -57,6 +62,7 @@ def cprint(text, color = 'default', mode='normal', **kargs):
         gray,lgray,dgray
 
     Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+        Also accepts an array of modes
     Accepts any keyword argument to the print function
     """
     print(cprepare(text, color, mode), **kargs)
@@ -65,14 +71,21 @@ def customprepare(text, color = 'default', mode = 'normal'):
     """
     Accepts any color number from   https://misc.flogisoft.com/_media/bash/colors_format/256_colors_fg.png
     Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+        Also accepts an array of modes
     """
 
-    return '{}\033[0m'.format((COLOR[color] if color == 'default' else '\033[38;5;{}m{}').format(color, '{}').format(MODE[mode]).format(text))
+    if not isinstance(mode, list): mymode = MODE[mode]
+    else :
+        mymode = MODE[mode[0]]
+        for m in mode[1:]: mymode = mymode.format(MODE[m])
+
+    return '{}\033[0m'.format(mymode.format((COLOR[color] if color == 'default' else '\033[38;5;{}m{}').format(color, text)))
 
 def customprint(text, color = 'default', mode = 'normal', **kargs):
     """
     Accepts any color number from   https://misc.flogisoft.com/_media/bash/colors_format/256_colors_fg.png
     Accepts any mode from   normal,bold,dim,underlined,blink,inverted,hidden
+        Also accepts an array of modes
     Accepts any keyword argument to the print function
     """
 

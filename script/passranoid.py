@@ -5,7 +5,7 @@ from os.path import isfile as isfile
 from getpass import getpass
 from pmanager import PasswdManager
 from cmanager import CommandManager
-from printer import cprint, ctable
+from printer import cprint, cprepare, ctable
 
 #TODO : remove database
 #TODO : change service user
@@ -13,41 +13,46 @@ from printer import cprint, ctable
 #TODO : merge databases
 
 def print_help(in_session = True):
+    title_color = {'color' : 'default', 'mode' : 'bold'}
+    primary_color = {'color' : 'blue', 'mode' : 'bold'}
+    secundary_color = {'color' : 'blue', 'mode' : 'normal'}
+    tertiary_color = {'color' : 'lgray', 'mode' : 'normal'}
+
     if not in_session :
-        cprint('Usage : ./passranoid.sh')
-        cprint('Options :')
-        cprint('    -v, --verbose : Open session in verbose mode')
-        cprint('    -h, --help : Print this message and exit\n')
+        print(cprepare('Usage :', **title_color), cprepare('./passranoid.sh', **primary_color))
+        print(cprepare('Options :', **title_color))
+        print(cprepare('    -v, --verbose', **primary_color), cprepare(': Open session in verbose mode', **secundary_color))
+        print(cprepare('    -h, --help', **primary_color), cprepare(': Print this message and exit\n', **secundary_color))
 
-    cprint('Available commands {} :\n'.format('' if in_session else 'in session mode'))
+    print(cprepare('Available commands {} :\n'.format('' if in_session else 'in session mode'), **title_color))
 
-    cprint('  create [dbname] : Create a new database', mode = 'bold', color = 'blue')
-    cprint('      dbname : New database name')
-    cprint('  import [dbfile] : Import a exported database into the one in use', mode = 'bold', color = 'blue')
-    cprint('      dbfile : Exported database file to import')
-    cprint('  passgen [length] [alphabet] : Generate a new password', mode = 'bold', color = 'blue')
-    cprint('      length : Length of the generated password')
-    cprint('      alphabet : Alphabet of the generated password')
-    cprint('  clear : Clear the console', mode = 'bold', color = 'blue')
-    cprint('  help : Show this help message', mode = 'bold', color = 'blue')
-    cprint('  use [dbname] : Load a database', mode = 'bold', color = 'blue')
-    cprint('      dbname : Name of the database to load')
-    cprint('  insert [service] [user] : Insert a new entry', mode = 'bold', color = 'blue')
-    cprint('      service : Name of the service to insert')
-    cprint('      user : Name of the username/email of the service')
-    cprint('  select [service] : Select entries by service', mode = 'bold', color = 'blue')
-    cprint('      service : Name of the service to select')
-    cprint('  remove [index] : Remove entries by index', mode = 'bold', color = 'blue')
-    cprint('      index : The index of the entry to remove')
-    cprint('  list : List all the entries in the loaded database', mode = 'bold', color = 'blue')
-    cprint('  changedbpass : Change the password of the loaded database', mode = 'bold', color = 'blue')
-    cprint('  changedbkey : Change the rsa pair of the loaded database', mode = 'bold', color = 'blue')
-    cprint('  export [dbfile] : Export loaded database', mode = 'bold', color = 'blue')
-    cprint('      dbfile : Name of the file to save the exported database')
-    cprint('  version : Show current version of the database', mode = 'bold', color = 'blue')
-    cprint('  exit : Exit session mode', mode = 'bold', color = 'blue')
+    print(cprepare('  create [dbname]', **primary_color), cprepare(': Create a new database', **secundary_color))
+    print(cprepare('      dbname : New database name', **tertiary_color))
+    print(cprepare('  import [dbfile]', **primary_color), cprepare(': Import a exported database into the one in use', **secundary_color))
+    print(cprepare('      dbfile : Exported database file to import', **tertiary_color))
+    print(cprepare('  passgen [length] [alphabet]', **primary_color), cprepare(': Generate a new password', **secundary_color))
+    print(cprepare('      length : Length of the generated password', **tertiary_color))
+    print(cprepare('      alphabet : Alphabet of the generated password', **tertiary_color))
+    print(cprepare('  Ctrl+L/clear', **primary_color), cprepare(': Clear the console', **secundary_color))
+    print(cprepare('  help', **primary_color), cprepare(': Show this help message', **secundary_color))
+    print(cprepare('  use [dbname]', **primary_color), cprepare(': Load a database', **secundary_color))
+    print(cprepare('      dbname : Name of the database to load', **tertiary_color))
+    print(cprepare('  add/insert [service] [user]', **primary_color), cprepare(': Insert a new entry', **secundary_color))
+    print(cprepare('      service : Name of the service to insert', **tertiary_color))
+    print(cprepare('      user : Name of the username/email of the service', **tertiary_color))
+    print(cprepare('  select [service]', **primary_color), cprepare(': Select entries by service', **secundary_color))
+    print(cprepare('      service : Name of the service to select', **tertiary_color))
+    print(cprepare('  rm/remove [index]', **primary_color), cprepare(': Remove entries by index', **secundary_color))
+    print(cprepare('      index : The index of the entry to remove', **tertiary_color))
+    print(cprepare('  ls/list', **primary_color), cprepare(': List all the entries in the loaded database', **secundary_color))
+    print(cprepare('  changedbpass', **primary_color), cprepare(': Change the password of the loaded database', **secundary_color))
+    print(cprepare('  changedbkey', **primary_color), cprepare(': Change the rsa pair of the loaded database', **secundary_color))
+    print(cprepare('  export [dbfile]', **primary_color), cprepare(': Export loaded database', **secundary_color))
+    print(cprepare('      dbfile : Name of the file to save the exported database', **tertiary_color))
+    print(cprepare('  version', **primary_color), cprepare(': Show current version of the database', **secundary_color))
+    print(cprepare('  Crtl+C/Ctrl+D/exit', **primary_color), cprepare(': Exit session mode', **secundary_color))
 
-    cprint('\nAll arguments are optional. If missing, they will be asked interactively')
+    print(cprepare('\nAll arguments are optional. If missing, they will be asked interactively', **title_color))
 def clear(): os.system('clear; clear')
 
 
@@ -94,8 +99,8 @@ while command != "exit":
                     success = PasswdManager.verifyauth(*verify_args)
                     if not success : cprint('Wrong password or/and passphrase', color = 'red')
                     else : cm.set_auth(*verify_args)
-            elif command == 'insert':
-                insert_args = cm.handle(command, args)
+            elif command == 'insert' or command == 'add':
+                insert_args = cm.handle('insert', args)
                 if insert_args != False: PasswdManager.insert(*insert_args)
             elif command == 'select':
                 select_args = cm.handle(command, args)
@@ -107,8 +112,8 @@ while command != "exit":
                         header_color = 'blue', rows_color = 'lblue'
                     )
                     else : cprint('No matches', color = 'orange')
-            elif command == 'remove':
-                remove_args = cm.handle(command, args)
+            elif command == 'remove' or command == 'rm':
+                remove_args = cm.handle('remove', args)
                 if remove_args != False :
                     success = PasswdManager.remove(*remove_args)
                     if not success : cprint('The index does not exists', color = 'red')
